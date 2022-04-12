@@ -1,3 +1,3 @@
 # python-OOP-exercises
 
-A repo of personal projects that use object-oriented programming (OOP) design in Python.  
+A repo of simple Python programs for learning Object-oriented programming (OOP) design.
