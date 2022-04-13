@@ -216,7 +216,7 @@ def check_winner(player, dealer, bet):
     player_points = player.get_points()
     dealer_points = dealer.get_points()
     # print('player hands: ', len(player.hands) )
-    print(dealer_points, player_points)
+    # print(dealer_points, player_points)
     if player_points == dealer_points:
         return '\nDraw\n'
     elif player_points > dealer_points or player_points == 9:
