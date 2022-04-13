@@ -1,22 +1,39 @@
 import random
+import sys
 import time
 
 class Card:
-    def __init__(self, suit, val, facedown=False):
+    def __init__(self, suit, val, is_facedown=False):
         self.suit = suit
         self.val = val
-        self.facedown = facedown
+        self.is_facedown = is_facedown
 
     def get_card_prints(self):
-        if self.facedown:
-            card_segments = [' ___ ', f'|{3*chr(9650)}|', f'|{3*chr(9660)}|', f'|_{chr(9650)}_|', '']
+        """  
+            Backside pattern:
+            ___
+           |▲▲▲|
+           |▼▼▼|
+           |_▲_|
+
+            Frontside pattern:
+            ___
+           |A  |
+           | ♥ |
+           |__A|
+
+        """
+        if self.is_facedown:
+            card_segments = [' ___ ', '|▲▲▲|', '|▼▼▼|', '|_▲_|', '']
             return card_segments
+
         suits = {
-                "HEART": chr(9829),
-                "DIAMOND": chr(9830),
-                "CLUB": chr(9827),
-                "SPADE": chr(9824)
+                "HEART": '♥',
+                "DIAMOND": '♦',
+                "CLUB": '♣',
+                "SPADE": '♠'
             }
+     
         card_segments = [' ___ ', '', '', '', '', '']
         card_segments[1] = '|' + '{}'.format(self.val).ljust(3, ' ') + '|'
         card_segments[2] = '| {} |'.format(suits[self.suit])
@@ -61,21 +78,20 @@ class Deck:
     def reset(self):
         self.cards = []
         self._build()
-    def show_cards(self):
-        print('number of cards: ', len(self.cards))
-        print(self.cards)
+        
+    # def show_cards(self):
+    #     print('number of cards: ', len(self.cards))
 
 class Player(Card):
     def __init__(self, money=0, bet=0):
-        # self.name = name
         self.hands=[]
         self.money=money
         self.bet=bet
 
     def draw(self, number_of_cards):
-        global deck
+        global DECK
         for i in range(number_of_cards):
-            card = deck.remove_card()
+            card = DECK.remove_card()
             self.hands.append(card)
 
     def show_hands(self):
@@ -91,19 +107,16 @@ class Player(Card):
             
     def get_points(self):
         raw_score=0
-        for suit, val in self.hands:
-            if val in ['K', 'Q', 'J', '10']:
+        for card in self.hands:
+            if card.val in ['K', 'Q', 'J', '10']:
                 continue
-            elif val == 'A':
+            elif card.val == 'A':
                 raw_score += 1
             else:
-                raw_score += int(val)
+                raw_score += int(card.val)
 
         points = str(raw_score)[-1]
         return int(points)  
-
-    def reset_hands(self):
-        self.hands = []
 
     def show_money(self):
         money = list(str(self.money))
@@ -113,93 +126,110 @@ class Player(Card):
         formatted_money=''.join(money)
         print('\nMoney: ${}\n'.format(formatted_money))
 
-deck = Deck()
-p1 = Player()
-dealer = Player()
+# GLOBAL objects
+DECK = Deck()
+MAX_FUNDS = 9000
 
-print("\nDealer's hand")
-dealer.draw(2)
-dealer.hands[1].facedown = True
-dealer.show_hands()
-print("\nCaloy\t(Money: $5,000)")
-p1.draw(2)
-p1.show_hands()
-print("\nPress [1]: Hit, [2]: Stand, [Q]: Quit")
+def main():
+    print(f"\nHow much do you wanna play? (Max: {str(MAX_FUNDS)})\n")
+    capital = get_money(min=1,max=MAX_FUNDS)
+    player1 = Player()
+    dealer = Player()
+    player1.money = capital
+    #initialize game
+    run = True
+    while run:
+        print('Place your bet:')
+        bet = get_money(min=1,max=player1.money)
+        player1.draw(2)
+        dealer.draw(2)
+        show_game_status(player1, dealer) # Initial phase
+        action = get_action() 
+        if dealer.get_points() < 6:
+            print('\n...Dealer hits')
+            time.sleep(0.95)
+            dealer.draw(1) # Dealer HITS if total points has low chance of winning (i.e 1,2,3,4,5)
+        result = handle_action(action, player1, dealer, bet)
+        show_game_status(player1, dealer, is_endphase= True)
+        print(result)
+        if player1.money == 0:
+            player1.show_money()
+            print("You're out of money. Go home")
+            sys.exit(0)
+        player1.show_money()
+        if not is_continue():
+            print('Thanks for playing')
+            sys.exit(0)
+        reset((player1,dealer))
 
-# deck = Deck()
-# max_funds = 10000
-# def main():
-#     print("\nHow much do you wanna play? (Max: $10,000)\n")
-#     capital = get_money(min=1,max=max_funds)
-#     player1 = Player()
-#     dealer = Player(dealer=True)
-#     player1.money = capital
-#     #initialize game
-#     while True:
-#         player1.show_money()
-#         # Continue playing if player money is not zero
-#         if player1.money:
-#             deck.show_cards()
-#             print('Place your bet:')
-#             bet = get_money(min=1,max=player1.money)
-#             player1.draw(2)
-#             dealer.draw(2)
-#             if dealer.get_points() < 6:
-#                 print('Dealer drew a card')
-#                 dealer.draw(1)
-#             handle_action(player1, dealer, bet)
-#             reset((player1, dealer))
-#         else:
-#             print("You're out of money")
-#             print('Thanks for playing...')
-#             break
+        
+def get_money(min,max):
+    while True:
+        money = input(chr(8594) + " $" + "").strip()
+        if not money.isdecimal():
+            continue
+        else:
+            money = int(money)
+            if min <= money <= max:
+                return money
 
-# def get_money(min,max):
-#     while True:
-#         money = input(chr(8594) + " $" + "").strip()
-#         if not money.isdecimal():
-#             continue
-#         else:
-#             money = int(money)
-#             if min <= money <= max:
-#                 return money
+def get_action():
+    while True:
+        print('\nPress [1]: Hit, [2]: Stand')
+        action = input(chr(8594) + ' ').strip()
+        if action not in ['1','2']:
+            continue
+        else:
+            return action
 
-# def handle_action(player, dealer, bet):
-#     player.show_hand()
-#     action = input('\nPress (H)it, (S)tand: ')
-#     if action.lower().strip() == 'h': # Draw 1 card when (H)it is pressed
-#         player.draw(1)
-#         check_winner(player, dealer, bet)
-#     elif action.lower().strip() == 's':
-#         check_winner(player, dealer, bet)
-#     else:
-#         print('Try again') 
+def handle_action(action, player, dealer, bet):
+    
+    if action.strip() == '1':
+        player.draw(1)  # Draw 1 card when player HITS
+        return check_winner(player, dealer, bet)
+    elif action.strip() == '2':
+        return check_winner(player, dealer, bet)
 
-# def check_winner(player, dealer, bet):
-#     player_points = player.get_points()
-#     dealer_points = dealer.get_points()
-#     player.show_hand()
-#     dealer.show_hand()
-#     if player_points > dealer_points:
-#         print('You won!\n')
-#         player.money += bet
-#         player.show_money()
-#     elif player_points == dealer_points:
-#         print('Draw')
-#         player.show_money()
-#         # check for natural 9
-#     elif player_points == 9:
-#         player.money += bet
-#         player.show_money()
-#     else:
-#         print('You lose.')
-#         player.money -= bet
-#         player.show_money()                                 
+    
+def is_continue():
+    while True:
+        is_continue = input('continue playing(y/n)?')
+        if is_continue == 'n':
+            return False
+        elif is_continue == 'y':
+            return True
+        else:
+            continue
 
-# def reset(players):
-#     deck.reset()
-#     for player in players:
-#         player.reset_hands()
+        
+def show_game_status(player, dealer, is_endphase = False):
+    if not is_endphase:
+        dealer.hands[1].is_facedown = True # Hides one Dealer card
+    else:
+        dealer.hands[1].is_facedown = False
+    print("\nDealer's hand") 
+    dealer.show_hands()
+    print("\nPlayer's hand")
+    player.show_hands()
+    
+def check_winner(player, dealer, bet):
+    player_points = player.get_points()
+    dealer_points = dealer.get_points()
+    # print('player hands: ', len(player.hands) )
+    print(dealer_points, player_points)
+    if player_points == dealer_points:
+        return '\nDraw\n'
+    elif player_points > dealer_points or player_points == 9:
+        player.money += bet
+        return '\nYou won!\n'
+    else:
+        player.money -= bet             
+        return '\nYou lose.\n'              
 
-# if __name__ == "__main__":
-#     main()
+def reset(players):
+    DECK.reset()
+    for player in players:
+        player.hands = []
+
+if __name__ == "__main__":
+    main()
