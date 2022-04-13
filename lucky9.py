@@ -128,7 +128,7 @@ class Player(Card):
 
 # GLOBAL objects
 DECK = Deck()
-MAX_FUNDS = 9000
+MAX_FUNDS = 10000
 
 def main():
     print(f"\nHow much do you wanna play? (Max: {str(MAX_FUNDS)})\n")
