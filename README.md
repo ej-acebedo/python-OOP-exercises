@@ -2,8 +2,8 @@
 
 A repo of Python programs for learning Object-oriented programming (OOP) design.
 
-## Lucky 9
-### Rules:
+### [Lucky 9](https://github.com/ej-acebedo/python-OOP-exercises/blob/main/lucky9.py_
+#### Rules:
 
 * Each player is dealt two cards and decides to Hit, Stand, or Split cards of the same value. 
 * The dealer receives two cards, one face-up and one face-down, standing with a two-card total of 5 or more or Draws a third card with a two-card total of 4 or lower.
