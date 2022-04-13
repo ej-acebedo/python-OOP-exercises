@@ -2,7 +2,7 @@
 
 A repo of Python programs for learning Object-oriented programming (OOP) design.
 
-### [Lucky 9](https://github.com/ej-acebedo/python-OOP-exercises/blob/main/lucky9.py)
+### [Lucky 9](https://github.com/ej-acebedo/python-OOP-exercises/tree/main/lucky9)
 #### Rules:
 
 * Each player is dealt two cards and decides to Hit or Stand. 
